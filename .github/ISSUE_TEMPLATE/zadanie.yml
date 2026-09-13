@@ -1,33 +1,50 @@
-name: Задание
-description: Учебное задание с дедлайном
+name: Занятие
+description: Предмет, преподаватель, тип и расписание
 title: ""
 labels: ["zadanie"]
 body:
   - type: input
-    id: deadline
-    attributes:
-      label: Дедлайн
-      description: Дата в формате ГГГГ-ММ-ДД
-      placeholder: "2026-09-20"
-    validations:
-      required: true
-  - type: dropdown
-    id: repeat
-    attributes:
-      label: Повтор
-      options:
-        - однократно
-        - каждый день
-        - каждую неделю
-        - каждый месяц
-    validations:
-      required: true
-  - type: input
     id: subject
     attributes:
       label: Предмет
-      placeholder: "Приводы / встроенные системы / ROS"
-  - type: textarea
-    id: notes
+      placeholder: "Приводы роботов"
+    validations:
+      required: true
+  - type: input
+    id: teacher
     attributes:
-      label: Заметки
+      label: ФИО преподавателя
+      placeholder: "Иванов И. И."
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Тип
+      options:
+        - лекция
+        - семинар
+        - лаба
+    validations:
+      required: true
+  - type: dropdown
+    id: schedule
+    attributes:
+      label: Расписание
+      options:
+        - однократно
+        - каждый понедельник
+        - каждый вторник
+        - каждую среду
+        - каждый четверг
+        - каждую пятницу
+        - каждую субботу
+        - каждое воскресенье
+    validations:
+      required: true
+  - type: input
+    id: deadline
+    attributes:
+      label: Дата
+      description: Нужна только для однократного события (ГГГГ-ММ-ДД)
+      placeholder: "2026-09-20"
