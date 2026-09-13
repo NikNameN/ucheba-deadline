@@ -1,0 +1,33 @@
+name: Задание
+description: Учебное задание с дедлайном
+title: ""
+labels: ["zadanie"]
+body:
+  - type: input
+    id: deadline
+    attributes:
+      label: Дедлайн
+      description: Дата в формате ГГГГ-ММ-ДД
+      placeholder: "2026-09-20"
+    validations:
+      required: true
+  - type: dropdown
+    id: repeat
+    attributes:
+      label: Повтор
+      options:
+        - однократно
+        - каждый день
+        - каждую неделю
+        - каждый месяц
+    validations:
+      required: true
+  - type: input
+    id: subject
+    attributes:
+      label: Предмет
+      placeholder: "Приводы / встроенные системы / ROS"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Заметки
