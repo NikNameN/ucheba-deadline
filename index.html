@@ -35,11 +35,14 @@
     }
     .suggest button:hover, .suggest button.active { background:#1d2636; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    button.submit {
+    button.submit, button.save {
       display:block; width:100%; margin-top:14px; padding:13px; border:0; border-radius:12px;
       background:var(--acc); color:#081018; font-weight:700; font-size:1rem;
     }
+    button.save { background:#2a3548; color:var(--acc); }
     .hint { margin:8px 0 0; color:var(--muted); font-size:.78rem; }
+    .okmsg { color:var(--ok); }
+    .badmsg { color:var(--bad); }
     .filters { display:flex; gap:8px; padding:0 16px 8px; overflow-x:auto; }
     .filters button { width:auto; margin:0; padding:8px 12px; border:0; border-radius:12px; background:#1a2030; color:var(--txt); font-weight:600; font-size:.85rem; }
     .filters button.on { background:var(--acc); color:#081018; }
@@ -51,20 +54,31 @@
     .tag { padding:2px 8px; border-radius:999px; background:#232833; }
     .soon { color:var(--warn); } .over { color:var(--bad); } .ok { color:var(--ok); }
     .actions { display:flex; gap:8px; margin-top:12px; }
-    .actions a, .actions button {
-      flex:1; padding:10px; border-radius:10px; border:0; font-weight:700; font-size:.9rem; text-align:center; text-decoration:none;
+    .actions button {
+      flex:1; padding:10px; border-radius:10px; border:0; font-weight:700; font-size:.9rem;
     }
-    .actions a { background:#1d2636; color:var(--acc); }
     .actions button.del { background:#3a1c22; color:#ff8a8a; }
     .empty, .err { color:var(--muted); text-align:center; padding:24px 8px; }
     .hidden { display:none; }
+    details.token { margin:0 16px 12px; }
+    details.token summary { color:var(--muted); cursor:pointer; font-size:.9rem; }
   </style>
 </head>
 <body>
   <header>
     <h1>АДМ-25-05</h1>
-    <p class="sub">Сначала предмет и тип — потом ФИО само.</p>
+    <p class="sub" id="statusLine">Добавление и удаление прямо с сайта.</p>
   </header>
+
+  <details class="token panel" id="tokenBox" style="margin:0 16px 12px">
+    <summary>Доступ для кнопок (один раз)</summary>
+    <label>GitHub token</label>
+    <input id="token" type="password" placeholder="ghp_... или github_pat_..." autocomplete="off" />
+    <button class="save" type="button" id="saveToken">Сохранить на этом телефоне</button>
+    <p class="hint">Создай токен: GitHub → Settings → Developer settings → Personal access tokens.<br>
+    Нужен доступ <b>Issues: Read and write</b> к репозиторию <b>ucheba-deadline</b>.<br>
+    Токен хранится только в этом браузере. Каждому другу — свой токен + Write в репо.</p>
+  </details>
 
   <form class="panel" id="form">
     <label>Название предмета</label>
@@ -107,8 +121,8 @@
       <input id="deadline" type="date" />
     </div>
 
-    <button class="submit" type="submit">Добавить</button>
-    <p class="hint">Препод берётся из расписания по паре предмет + лекция/семинар/лаба.</p>
+    <button class="submit" type="submit" id="addBtn">Добавить</button>
+    <p class="hint" id="formMsg"></p>
   </form>
 
   <div class="filters">
@@ -124,6 +138,7 @@
   <script>
     const OWNER = 'NikNameN';
     const REPO = 'ucheba-deadline';
+    const API = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues';
     const CATALOG = [
       { subject: 'Аналитика технологических данных', byKind: { 'лекция': 'Шереужев М.А.', 'семинар': 'Шевченко М.Ю.', 'лаба': 'Шевченко М.Ю.' } },
       { subject: 'Сенсорные и управляющие системы роботов', byKind: { 'лекция': 'Андреев В.П.', 'семинар': 'Андреев В.П.', 'лаба': 'Андреев В.П.' } },
@@ -146,9 +161,37 @@
     const dateWrap = document.getElementById('dateWrap');
     const deadlineEl = document.getElementById('deadline');
     const list = document.getElementById('list');
+    const formMsg = document.getElementById('formMsg');
+    const addBtn = document.getElementById('addBtn');
+    const tokenInput = document.getElementById('token');
     let all = [];
     let filter = 'all';
     let activeIdx = 0;
+
+    function getToken() { return localStorage.getItem('gh_token') || ''; }
+    function headers(write) {
+      const h = { 'Accept': 'application/vnd.github+json' };
+      const t = getToken();
+      if (t) h.Authorization = 'Bearer ' + t;
+      if (write) h['Content-Type'] = 'application/json';
+      return h;
+    }
+    function updateTokenUi() {
+      const ok = !!getToken();
+      document.getElementById('tokenBox').open = !ok;
+      document.getElementById('statusLine').textContent = ok
+        ? 'Кнопки Добавить / Удалить работают с этого телефона.'
+        : 'Сначала сохрани токен — иначе кнопки не смогут записать.';
+    }
+    document.getElementById('saveToken').onclick = () => {
+      const t = tokenInput.value.trim();
+      if (!t) { alert('Вставь токен'); return; }
+      localStorage.setItem('gh_token', t);
+      tokenInput.value = '';
+      updateTokenUi();
+      load();
+    };
+    updateTokenUi();
 
     function norm(s) { return (s || '').toLowerCase().replace(/ё/g, 'е'); }
     function findCourse(name) {
@@ -156,9 +199,7 @@
       return CATALOG.find((c) => norm(c.subject) === n)
         || CATALOG.find((c) => norm(c.subject).includes(n) && n.length > 4);
     }
-    function uniqueTeachers(c) {
-      return [...new Set(Object.values(c.byKind))];
-    }
+    function uniqueTeachers(c) { return [...new Set(Object.values(c.byKind))]; }
     function fillTeacher() {
       const c = findCourse(subjectEl.value.trim());
       if (!c) {
@@ -166,14 +207,11 @@
         return;
       }
       subjectEl.value = c.subject;
-      const kind = kindEl.value;
-      const chosen = c.byKind[kind] || uniqueTeachers(c)[0];
-      const names = uniqueTeachers(c);
-      teacherEl.innerHTML = names.map((n) => {
-        const mark = n === chosen ? ' selected' : '';
-        const note = n === c.byKind['лекция'] && n === c.byKind['семинар'] ? '' :
+      const chosen = c.byKind[kindEl.value] || uniqueTeachers(c)[0];
+      teacherEl.innerHTML = uniqueTeachers(c).map((n) => {
+        const note = (n === c.byKind['лекция'] && n === c.byKind['семинар']) ? '' :
           (n === c.byKind['лекция'] ? ' — лекция' : ' — семинар/лаба');
-        return '<option value="' + n + '"' + mark + '>' + n + note + '</option>';
+        return '<option value="' + n + '">' + n + note + '</option>';
       }).join('');
       teacherEl.value = chosen;
     }
@@ -210,7 +248,6 @@
       }
     });
     kindEl.addEventListener('change', fillTeacher);
-
     function toggleDate() {
       const once = whenEl.value === 'once';
       dateWrap.classList.toggle('hidden', !once);
@@ -219,9 +256,19 @@
     whenEl.addEventListener('change', toggleDate);
     toggleDate();
 
-    document.getElementById('form').addEventListener('submit', (e) => {
+    function setMsg(text, ok) {
+      formMsg.className = 'hint ' + (ok ? 'okmsg' : 'badmsg');
+      formMsg.textContent = text;
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
       e.preventDefault();
       fillTeacher();
+      if (!getToken()) {
+        document.getElementById('tokenBox').open = true;
+        setMsg('Сначала сохрани токен сверху.', false);
+        return;
+      }
       const subject = subjectEl.value.trim();
       const teacher = teacherEl.value.trim();
       const kind = kindEl.value;
@@ -237,10 +284,50 @@
         '', '### Расписание', schedule,
         '', '### Дата', when === 'once' ? deadline : '—'
       ].join('\n');
-      location.href = 'https://github.com/' + OWNER + '/' + REPO + '/issues/new?labels=zadanie'
-        + '&title=' + encodeURIComponent(kind + ': ' + subject)
-        + '&body=' + encodeURIComponent(body);
+      addBtn.disabled = true;
+      setMsg('Добавляю…', true);
+      try {
+        const r = await fetch(API, {
+          method: 'POST',
+          headers: headers(true),
+          body: JSON.stringify({ title: kind + ': ' + subject, body, labels: ['zadanie'] })
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          throw new Error(err.message || ('Ошибка ' + r.status));
+        }
+        subjectEl.value = '';
+        teacherEl.innerHTML = '<option value="">сначала выбери предмет и тип</option>';
+        setMsg('Добавлено.', true);
+        await load();
+      } catch (err) {
+        setMsg(err.message || 'Не удалось добавить. Проверь токен.', false);
+      }
+      addBtn.disabled = false;
     });
+
+    async function removeIssue(num, btn) {
+      if (!getToken()) {
+        document.getElementById('tokenBox').open = true;
+        alert('Сначала сохрани токен.');
+        return;
+      }
+      if (!confirm('Удалить этот дедлайн?')) return;
+      btn.disabled = true;
+      try {
+        const r = await fetch(API + '/' + num, {
+          method: 'PATCH',
+          headers: headers(true),
+          body: JSON.stringify({ state: 'closed' })
+        });
+        if (!r.ok) throw new Error('error');
+        all = all.filter((t) => t.number !== num);
+        render();
+      } catch (e) {
+        alert('Не удалось удалить. Проверь токен и права Write.');
+        btn.disabled = false;
+      }
+    }
 
     document.querySelectorAll('.filters button').forEach((b) => {
       b.onclick = () => {
@@ -330,26 +417,26 @@
             ${t.kind ? '<span class="tag">' + escapeHtml(t.kind) + '</span>' : ''}
           </div>
           <div class="actions">
-            <a href="${t.html_url}">Открыть</a>
-            <button type="button" class="del" data-url="${t.html_url}">Удалить</button>
+            <button type="button" class="del" data-num="${t.number}">Удалить</button>
           </div>
         </article>`).join('');
       list.querySelectorAll('button.del').forEach((btn) => {
-        btn.onclick = () => {
-          if (!confirm('Удалить этот дедлайн?\nНа GitHub нажми «Close issue».')) return;
-          location.href = btn.dataset.url;
-        };
+        btn.onclick = () => removeIssue(+btn.dataset.num, btn);
       });
     }
-    fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
-      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
-      .catch(() => fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50').then((r) => r.json()))
-      .then((items) => {
+    async function load() {
+      try {
+        const r = await fetch(API + '?state=open&labels=zadanie&per_page=50', { headers: headers(false) });
+        if (!r.ok) throw new Error();
+        const items = await r.json();
         all = (items || []).filter((i) => !i.pull_request).map(normalize)
           .sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
         render();
-      })
-      .catch(() => { list.innerHTML = '<p class="err">Список не загрузился.</p>'; });
+      } catch (e) {
+        list.innerHTML = '<p class="err">Список не загрузился.</p>';
+      }
+    }
+    load();
   </script>
 </body>
 </html>
