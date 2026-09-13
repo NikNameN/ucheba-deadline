@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0f1115" />
-  <title>Учёба — дедлайны</title>
+  <title>Учёба — расписание</title>
   <style>
     :root {
       color-scheme: dark;
@@ -13,124 +13,140 @@
       --muted:#939bb0; --acc:#7eb0ff; --warn:#ffb020; --bad:#ff6b6b; --ok:#3dd68c;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--txt);
-    }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--txt); }
     header { padding: 18px 16px 12px; }
     h1 { font-size: 1.35rem; margin: 0 0 4px; }
-    .sub { margin: 0; color: var(--muted); font-size: .9rem; }
-    .panel {
-      margin: 0 16px 12px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-    }
-    label { display: block; font-size: .8rem; color: var(--muted); margin: 10px 0 4px; }
+    .sub { margin:0; color:var(--muted); font-size:.9rem; }
+    .panel { margin:0 16px 12px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; }
+    label { display:block; font-size:.8rem; color:var(--muted); margin:10px 0 4px; }
     input, select, textarea {
-      width: 100%; padding: 11px 12px; border-radius: 10px;
-      border: 1px solid var(--line); background: #0f131a; color: var(--txt); font-size: 1rem;
+      width:100%; padding:11px 12px; border-radius:10px;
+      border:1px solid var(--line); background:#0f131a; color:var(--txt); font-size:1rem;
     }
-    textarea { min-height: 70px; resize: vertical; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    button, .btn {
-      display: block; width: 100%; margin-top: 14px; padding: 13px;
-      border: 0; border-radius: 12px; background: var(--acc); color: #081018;
-      font-weight: 700; font-size: 1rem; text-align: center; text-decoration: none;
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button {
+      display:block; width:100%; margin-top:14px; padding:13px; border:0; border-radius:12px;
+      background:var(--acc); color:#081018; font-weight:700; font-size:1rem;
     }
-    .hint { margin: 8px 0 0; color: var(--muted); font-size: .78rem; }
-    .filters { display: flex; gap: 8px; padding: 0 16px 8px; overflow-x: auto; }
-    .filters button {
-      width: auto; margin: 0; padding: 8px 12px; background: #1a2030; color: var(--txt); font-weight: 600; font-size: .85rem;
-    }
-    .filters button.on { background: var(--acc); color: #081018; }
-    main { padding: 4px 16px 40px; display: flex; flex-direction: column; gap: 10px; }
-    .card {
-      display: block; background: var(--card); border: 1px solid var(--line);
-      border-radius: 14px; padding: 14px; color: inherit; text-decoration: none;
-    }
-    .card h2 { margin: 0 0 6px; font-size: 1.05rem; }
-    .meta { display: flex; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: .82rem; }
-    .tag { padding: 2px 8px; border-radius: 999px; background: #232833; }
-    .soon { color: var(--warn); }
-    .over { color: var(--bad); }
-    .ok { color: var(--ok); }
-    .empty, .err { color: var(--muted); text-align: center; padding: 24px 8px; }
+    .hint { margin:8px 0 0; color:var(--muted); font-size:.78rem; }
+    .filters { display:flex; gap:8px; padding:0 16px 8px; overflow-x:auto; }
+    .filters button { width:auto; margin:0; padding:8px 12px; background:#1a2030; color:var(--txt); font-weight:600; font-size:.85rem; }
+    .filters button.on { background:var(--acc); color:#081018; }
+    main { padding:4px 16px 40px; display:flex; flex-direction:column; gap:10px; }
+    .card { display:block; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; color:inherit; text-decoration:none; }
+    .card h2 { margin:0 0 4px; font-size:1.05rem; }
+    .who { margin:0 0 8px; color:var(--muted); font-size:.88rem; }
+    .meta { display:flex; flex-wrap:wrap; gap:6px; color:var(--muted); font-size:.82rem; }
+    .tag { padding:2px 8px; border-radius:999px; background:#232833; }
+    .soon { color:var(--warn); } .over { color:var(--bad); } .ok { color:var(--ok); }
+    .empty, .err { color:var(--muted); text-align:center; padding:24px 8px; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Дедлайны по учёбе</h1>
-    <p class="sub">Общий сайт. Добавляй здесь с телефона.</p>
+    <h1>Занятия и дедлайны</h1>
+    <p class="sub">Общий сайт. Добавляй с телефона.</p>
   </header>
 
   <form class="panel" id="form">
-    <label>Задание</label>
-    <input id="title" required placeholder="Лаба по приводам" />
+    <label>Название предмета</label>
+    <input id="subject" required placeholder="Приводы роботов" />
+
+    <label>ФИО преподавателя</label>
+    <input id="teacher" required placeholder="Иванов Иван Иванович" />
+
     <div class="row">
       <div>
-        <label>Дедлайн</label>
-        <input id="deadline" type="date" required />
+        <label>Тип</label>
+        <select id="kind" required>
+          <option value="лекция">лекция</option>
+          <option value="семинар">семинар</option>
+          <option value="лаба">лаба</option>
+        </select>
       </div>
       <div>
-        <label>Повтор</label>
-        <select id="repeat">
-          <option value="однократно">однократно</option>
-          <option value="каждый день">каждый день</option>
-          <option value="каждую неделю">каждую неделю</option>
-          <option value="каждый месяц">каждый месяц</option>
+        <label>Когда</label>
+        <select id="when" required>
+          <option value="once">однократно, дата</option>
+          <option value="1">каждый понедельник</option>
+          <option value="2">каждый вторник</option>
+          <option value="3">каждую среду</option>
+          <option value="4">каждый четверг</option>
+          <option value="5">каждую пятницу</option>
+          <option value="6">каждую субботу</option>
+          <option value="0">каждое воскресенье</option>
         </select>
       </div>
     </div>
-    <label>Предмет</label>
-    <input id="subject" placeholder="Приводы / ROS / встроенные" />
-    <label>Заметка</label>
-    <textarea id="notes" placeholder="Необязательно"></textarea>
-    <button type="submit">Добавить задание</button>
-    <p class="hint">Откроется GitHub, нажми «Submit new issue». После этого задание появится на сайте.</p>
+
+    <div id="dateWrap">
+      <label>Дата</label>
+      <input id="deadline" type="date" />
+    </div>
+
+    <button type="submit">Добавить</button>
+    <p class="hint">Откроется GitHub — нажми Submit new issue. После этого запись появится у всех на сайте.</p>
   </form>
 
   <div class="filters">
     <button class="on" data-f="all">Все</button>
     <button data-f="soon">Скоро</button>
     <button data-f="over">Просрочено</button>
+    <button data-f="лекция">Лекции</button>
+    <button data-f="семинар">Семинары</button>
+    <button data-f="лаба">Лабы</button>
   </div>
   <main id="list"><p class="empty">Загрузка…</p></main>
 
   <script>
     const OWNER = 'NikNameN';
     const REPO = 'ucheba-deadline';
+    const DAYS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+    const DAY_LABEL = {
+      0: 'каждое воскресенье',
+      1: 'каждый понедельник',
+      2: 'каждый вторник',
+      3: 'каждую среду',
+      4: 'каждый четверг',
+      5: 'каждую пятницу',
+      6: 'каждую субботу'
+    };
     const list = document.getElementById('list');
     let all = [];
     let filter = 'all';
 
+    const whenEl = document.getElementById('when');
+    const dateWrap = document.getElementById('dateWrap');
+    const deadlineEl = document.getElementById('deadline');
+    function toggleDate() {
+      const once = whenEl.value === 'once';
+      dateWrap.classList.toggle('hidden', !once);
+      deadlineEl.required = once;
+    }
+    whenEl.addEventListener('change', toggleDate);
+    toggleDate();
+
     document.getElementById('form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const title = document.getElementById('title').value.trim();
-      const deadline = document.getElementById('deadline').value;
-      const repeat = document.getElementById('repeat').value;
       const subject = document.getElementById('subject').value.trim();
-      const notes = document.getElementById('notes').value.trim();
+      const teacher = document.getElementById('teacher').value.trim();
+      const kind = document.getElementById('kind').value;
+      const when = whenEl.value;
+      const deadline = deadlineEl.value;
+      if (when === 'once' && !deadline) { deadlineEl.focus(); return; }
+      const schedule = when === 'once' ? 'однократно' : DAY_LABEL[when];
+      const title = kind + ': ' + subject;
       const body = [
-        '### Дедлайн',
-        deadline,
-        '',
-        '### Повтор',
-        repeat,
-        '',
-        '### Предмет',
-        subject || '—',
-        '',
-        '### Заметки',
-        notes || '—'
+        '### Предмет', subject,
+        '', '### ФИО преподавателя', teacher,
+        '', '### Тип', kind,
+        '', '### Расписание', schedule,
+        '', '### Дата', when === 'once' ? deadline : '—'
       ].join('\n');
-      const url = 'https://github.com/' + OWNER + '/' + REPO + '/issues/new?labels=zadanie'
+      location.href = 'https://github.com/' + OWNER + '/' + REPO + '/issues/new?labels=zadanie'
         + '&title=' + encodeURIComponent(title)
         + '&body=' + encodeURIComponent(body);
-      location.href = url;
     });
 
     document.querySelectorAll('.filters button').forEach((b) => {
@@ -148,82 +164,99 @@
       const m = body.match(re);
       return m ? m[1].trim() : '';
     }
-    function daysLeft(iso) {
+    function weekdayFromSchedule(s) {
+      s = (s || '').toLowerCase();
+      if (s.includes('воскр')) return 0;
+      if (s.includes('понед')) return 1;
+      if (s.includes('втор')) return 2;
+      if (s.includes('сред')) return 3;
+      if (s.includes('четвер')) return 4;
+      if (s.includes('пятн')) return 5;
+      if (s.includes('субб')) return 6;
+      return null;
+    }
+    function nextWeekday(wd) {
+      const now = new Date();
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diff = (wd - d.getDay() + 7) % 7;
+      d.setDate(d.getDate() + diff);
+      return d;
+    }
+    function daysLeftDate(iso) {
       if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return null;
-      const d = new Date(iso.slice(0, 10) + 'T23:59:59');
+      const d = new Date(iso.slice(0,10) + 'T23:59:59');
       if (isNaN(d)) return null;
       return Math.ceil((d - new Date()) / 86400000);
     }
     function cls(n) {
       if (n == null) return '';
       if (n < 0) return 'over';
-      if (n <= 2) return 'soon';
+      if (n <= 1) return 'soon';
       return 'ok';
     }
-    function label(n) {
-      if (n == null) return 'без даты';
-      if (n < 0) return 'просрочено на ' + (-n) + ' дн.';
-      if (n === 0) return 'сегодня';
-      if (n === 1) return 'завтра';
-      return 'ещё ' + n + ' дн.';
+    function whenText(t) {
+      if (t.wd != null) {
+        if (t.left === 0) return DAY_LABEL[t.wd] + ' · сегодня';
+        if (t.left === 1) return DAY_LABEL[t.wd] + ' · завтра';
+        return DAY_LABEL[t.wd];
+      }
+      if (!t.deadline) return 'без даты';
+      if (t.left < 0) return t.deadline + ' · просрочено на ' + (-t.left) + ' дн.';
+      if (t.left === 0) return t.deadline + ' · сегодня';
+      if (t.left === 1) return t.deadline + ' · завтра';
+      return t.deadline + ' · ещё ' + t.left + ' дн.';
     }
     function escapeHtml(s) {
       return String(s || '').replace(/[&<>"']/g, (c) => ({
-        '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;'
+        '&':'&','<':'<','>':'>','"':'"',"'":'&#39;'
       }[c]));
+    }
+    function normalize(i) {
+      const subject = parseField(i.body, 'Предмет') || i.title;
+      const teacher = parseField(i.body, 'ФИО преподавателя');
+      const kind = parseField(i.body, 'Тип');
+      const schedule = parseField(i.body, 'Расписание') || parseField(i.body, 'Повтор');
+      const deadline = parseField(i.body, 'Дата') || parseField(i.body, 'Дедлайн');
+      const wd = weekdayFromSchedule(schedule);
+      let left = null;
+      if (wd != null) {
+        const next = nextWeekday(wd);
+        left = Math.ceil((next.setHours(23,59,59,0) - Date.now()) / 86400000);
+      } else {
+        left = daysLeftDate(deadline);
+      }
+      return Object.assign({}, i, { subject, teacher, kind, schedule, deadline, wd, left });
     }
     function render() {
       let tasks = all;
-      if (filter === 'soon') tasks = all.filter((t) => t.left != null && t.left >= 0 && t.left <= 2);
-      if (filter === 'over') tasks = all.filter((t) => t.left != null && t.left < 0);
+      if (filter === 'soon') tasks = all.filter((t) => t.left != null && t.left >= 0 && t.left <= 1);
+      else if (filter === 'over') tasks = all.filter((t) => t.wd == null && t.left != null && t.left < 0);
+      else if (filter === 'лекция' || filter === 'семинар' || filter === 'лаба') tasks = all.filter((t) => t.kind === filter);
       if (!tasks.length) {
         list.innerHTML = '<p class="empty">Пока пусто.</p>';
         return;
       }
       list.innerHTML = tasks.map((t) => `
         <a class="card" href="${t.html_url}">
-          <h2>${escapeHtml(t.title)}</h2>
+          <h2>${escapeHtml(t.kind ? t.kind + ': ' + t.subject : t.title)}</h2>
+          <p class="who">${escapeHtml(t.teacher || '')}</p>
           <div class="meta">
-            <span class="tag ${cls(t.left)}">${escapeHtml(t.deadline || '—')} · ${label(t.left)}</span>
-            <span class="tag">${escapeHtml(t.repeat)}</span>
-            ${t.subject && t.subject !== '—' ? '<span class="tag">' + escapeHtml(t.subject) + '</span>' : ''}
-            <span class="tag">@${escapeHtml(t.user.login)}</span>
+            <span class="tag ${cls(t.left)}">${escapeHtml(whenText(t))}</span>
+            ${t.kind ? '<span class="tag">' + escapeHtml(t.kind) + '</span>' : ''}
           </div>
         </a>`).join('');
     }
-
-    fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
-      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    function load(url) {
+      return fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    load('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
+      .catch(() => load('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50'))
       .then((items) => {
-        all = items.filter((i) => !i.pull_request).map((i) => {
-          const deadline = parseField(i.body, 'Дедлайн');
-          const repeat = parseField(i.body, 'Повтор') || 'однократно';
-          const subject = parseField(i.body, 'Предмет');
-          return Object.assign({}, i, { deadline, repeat, subject, left: daysLeft(deadline) });
-        }).sort((a, b) => {
-          if (a.left == null) return 1;
-          if (b.left == null) return -1;
-          return a.left - b.left;
-        });
+        all = (items || []).filter((i) => !i.pull_request).map(normalize)
+          .sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
         render();
       })
-      .catch(() => {
-        fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50')
-          .then((r) => r.json())
-          .then((items) => {
-            all = (items || []).filter((i) => !i.pull_request).map((i) => {
-              const deadline = parseField(i.body, 'Дедлайн');
-              return Object.assign({}, i, {
-                deadline,
-                repeat: parseField(i.body, 'Повтор') || 'однократно',
-                subject: parseField(i.body, 'Предмет'),
-                left: daysLeft(deadline)
-              });
-            }).sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
-            render();
-          })
-          .catch(() => { list.innerHTML = '<p class="err">Список не загрузился.</p>'; });
-      });
+      .catch(() => { list.innerHTML = '<p class="err">Список не загрузился.</p>'; });
   </script>
 </body>
 </html>
