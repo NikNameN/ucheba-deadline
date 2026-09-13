@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0f1115" />
-  <title>Учёба — расписание</title>
+  <title>Учёба — АДМ-25-05</title>
   <style>
     :root {
       color-scheme: dark;
@@ -19,18 +19,29 @@
     .sub { margin:0; color:var(--muted); font-size:.9rem; }
     .panel { margin:0 16px 12px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; }
     label { display:block; font-size:.8rem; color:var(--muted); margin:10px 0 4px; }
-    input, select, textarea {
+    input, select {
       width:100%; padding:11px 12px; border-radius:10px;
       border:1px solid var(--line); background:#0f131a; color:var(--txt); font-size:1rem;
     }
+    .combo { position:relative; }
+    .suggest {
+      position:absolute; left:0; right:0; top:100%; z-index:20;
+      background:#121722; border:1px solid var(--line); border-radius:10px;
+      margin-top:4px; max-height:220px; overflow:auto; display:none;
+    }
+    .suggest button {
+      display:block; width:100%; margin:0; padding:10px 12px; border:0; border-radius:0;
+      background:transparent; color:var(--txt); font-weight:500; font-size:.95rem; text-align:left;
+    }
+    .suggest button:hover, .suggest button.active { background:#1d2636; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    button {
+    button.submit {
       display:block; width:100%; margin-top:14px; padding:13px; border:0; border-radius:12px;
       background:var(--acc); color:#081018; font-weight:700; font-size:1rem;
     }
     .hint { margin:8px 0 0; color:var(--muted); font-size:.78rem; }
     .filters { display:flex; gap:8px; padding:0 16px 8px; overflow-x:auto; }
-    .filters button { width:auto; margin:0; padding:8px 12px; background:#1a2030; color:var(--txt); font-weight:600; font-size:.85rem; }
+    .filters button { width:auto; margin:0; padding:8px 12px; border:0; border-radius:12px; background:#1a2030; color:var(--txt); font-weight:600; font-size:.85rem; }
     .filters button.on { background:var(--acc); color:#081018; }
     main { padding:4px 16px 40px; display:flex; flex-direction:column; gap:10px; }
     .card { display:block; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; color:inherit; text-decoration:none; }
@@ -45,16 +56,19 @@
 </head>
 <body>
   <header>
-    <h1>Занятия и дедлайны</h1>
-    <p class="sub">Общий сайт. Добавляй с телефона.</p>
+    <h1>АДМ-25-05</h1>
+    <p class="sub">Предмет из расписания — ПРепод подставится сам.</p>
   </header>
 
   <form class="panel" id="form">
     <label>Название предмета</label>
-    <input id="subject" required placeholder="Приводы роботов" />
+    <div class="combo">
+      <input id="subject" required autocomplete="off" placeholder="Начни вводить или выбери" />
+      <div class="suggest" id="suggest"></div>
+    </div>
 
     <label>ФИО преподавателя</label>
-    <input id="teacher" required placeholder="Иванов Иван Иванович" />
+    <input id="teacher" required placeholder="подставится после выбора предмета" />
 
     <div class="row">
       <div>
@@ -85,8 +99,8 @@
       <input id="deadline" type="date" />
     </div>
 
-    <button type="submit">Добавить</button>
-    <p class="hint">Откроется GitHub — нажми Submit new issue. После этого запись появится у всех на сайте.</p>
+    <button class="submit" type="submit">Добавить</button>
+    <p class="hint">Откроется GitHub — нажми Submit new issue.</p>
   </form>
 
   <div class="filters">
@@ -102,23 +116,99 @@
   <script>
     const OWNER = 'NikNameN';
     const REPO = 'ucheba-deadline';
-    const DAYS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+    const CATALOG = [
+      {
+        subject: 'Аналитика технологических данных',
+        byKind: { 'лекция': 'Шереужев М.А.', 'семинар': 'Шевченко М.Ю.', 'лаба': 'Шевченко М.Ю.' }
+      },
+      {
+        subject: 'Сенсорные и управляющие системы роботов',
+        byKind: { 'лекция': 'Андреев В.П.', 'семинар': 'Андреев В.П.', 'лаба': 'Андреев В.П.' }
+      },
+      {
+        subject: 'Управление проектом',
+        byKind: { 'лекция': 'Лукина С.В.', 'семинар': 'Лукина С.В.', 'лаба': 'Лукина С.В.' }
+      },
+      {
+        subject: 'Программное обеспечение мехатронных систем',
+        byKind: { 'лекция': 'Поливанов А.Ю.', 'семинар': 'Поливанов А.Ю.', 'лаба': 'Поливанов А.Ю.' }
+      },
+      {
+        subject: 'Инструменты моделирования мехатронных и робототехнических систем',
+        byKind: { 'лекция': 'Климов Д.Д.', 'семинар': 'Климов Д.Д.', 'лаба': 'Климов Д.Д.' }
+      },
+      {
+        subject: 'Навигация и управление автономными мобильными роботами',
+        byKind: { 'лекция': 'Собольников С.А.', 'семинар': 'Лапин Б.С.', 'лаба': 'Лапин Б.С.' }
+      },
+      {
+        subject: 'Стоимостной инжиниринг',
+        byKind: { 'лекция': 'Шинкевич И.А.', 'семинар': 'Шинкевич И.А.', 'лаба': 'Шинкевич И.А.' }
+      }
+    ];
     const DAY_LABEL = {
-      0: 'каждое воскресенье',
-      1: 'каждый понедельник',
-      2: 'каждый вторник',
-      3: 'каждую среду',
-      4: 'каждый четверг',
-      5: 'каждую пятницу',
-      6: 'каждую субботу'
+      0: 'каждое воскресенье', 1: 'каждый понедельник', 2: 'каждый вторник',
+      3: 'каждую среду', 4: 'каждый четверг', 5: 'каждую пятницу', 6: 'каждую субботу'
     };
-    const list = document.getElementById('list');
-    let all = [];
-    let filter = 'all';
 
+    const subjectEl = document.getElementById('subject');
+    const teacherEl = document.getElementById('teacher');
+    const kindEl = document.getElementById('kind');
+    const suggest = document.getElementById('suggest');
     const whenEl = document.getElementById('when');
     const dateWrap = document.getElementById('dateWrap');
     const deadlineEl = document.getElementById('deadline');
+    const list = document.getElementById('list');
+    let all = [];
+    let filter = 'all';
+    let activeIdx = 0;
+
+    function norm(s) { return (s || '').toLowerCase().replace(/ё/g, 'е'); }
+    function findCourse(name) {
+      const n = norm(name);
+      return CATALOG.find((c) => norm(c.subject) === n)
+        || CATALOG.find((c) => norm(c.subject).includes(n) && n.length > 4);
+    }
+    function fillTeacher() {
+      const c = findCourse(subjectEl.value.trim());
+      if (!c) return;
+      subjectEl.value = c.subject;
+      teacherEl.value = c.byKind[kindEl.value] || Object.values(c.byKind)[0];
+    }
+    function renderSuggest(q) {
+      const n = norm(q);
+      const items = CATALOG.filter((c) => !n || norm(c.subject).includes(n));
+      if (!items.length) { suggest.style.display = 'none'; return; }
+      activeIdx = 0;
+      suggest.innerHTML = items.map((c, i) =>
+        '<button type="button" data-i="' + i + '" class="' + (i === 0 ? 'active' : '') + '">' + c.subject + '</button>'
+      ).join('');
+      suggest.style.display = 'block';
+      suggest.querySelectorAll('button').forEach((b) => {
+        b.onmousedown = (e) => { e.preventDefault(); pick(items[+b.dataset.i]); };
+      });
+    }
+    function pick(c) {
+      subjectEl.value = c.subject;
+      fillTeacher();
+      suggest.style.display = 'none';
+    }
+    subjectEl.addEventListener('focus', () => renderSuggest(subjectEl.value));
+    subjectEl.addEventListener('input', () => { renderSuggest(subjectEl.value); fillTeacher(); });
+    subjectEl.addEventListener('blur', () => setTimeout(() => { suggest.style.display = 'none'; fillTeacher(); }, 150));
+    subjectEl.addEventListener('keydown', (e) => {
+      const buttons = [...suggest.querySelectorAll('button')];
+      if (!buttons.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, buttons.length - 1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); }
+      buttons.forEach((b, i) => b.classList.toggle('active', i === activeIdx));
+      if (e.key === 'Enter' && suggest.style.display === 'block') {
+        e.preventDefault();
+        buttons[activeIdx].dispatchEvent(new Event('mousedown'));
+      }
+    });
+    kindEl.addEventListener('change', fillTeacher);
+
     function toggleDate() {
       const once = whenEl.value === 'once';
       dateWrap.classList.toggle('hidden', !once);
@@ -129,14 +219,14 @@
 
     document.getElementById('form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const subject = document.getElementById('subject').value.trim();
-      const teacher = document.getElementById('teacher').value.trim();
-      const kind = document.getElementById('kind').value;
+      fillTeacher();
+      const subject = subjectEl.value.trim();
+      const teacher = teacherEl.value.trim();
+      const kind = kindEl.value;
       const when = whenEl.value;
       const deadline = deadlineEl.value;
       if (when === 'once' && !deadline) { deadlineEl.focus(); return; }
       const schedule = when === 'once' ? 'однократно' : DAY_LABEL[when];
-      const title = kind + ': ' + subject;
       const body = [
         '### Предмет', subject,
         '', '### ФИО преподавателя', teacher,
@@ -145,7 +235,7 @@
         '', '### Дата', when === 'once' ? deadline : '—'
       ].join('\n');
       location.href = 'https://github.com/' + OWNER + '/' + REPO + '/issues/new?labels=zadanie'
-        + '&title=' + encodeURIComponent(title)
+        + '&title=' + encodeURIComponent(kind + ': ' + subject)
         + '&body=' + encodeURIComponent(body);
     });
 
@@ -176,8 +266,7 @@
       return null;
     }
     function nextWeekday(wd) {
-      const now = new Date();
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const d = new Date(); d.setHours(0,0,0,0);
       const diff = (wd - d.getDay() + 7) % 7;
       d.setDate(d.getDate() + diff);
       return d;
@@ -219,12 +308,8 @@
       const deadline = parseField(i.body, 'Дата') || parseField(i.body, 'Дедлайн');
       const wd = weekdayFromSchedule(schedule);
       let left = null;
-      if (wd != null) {
-        const next = nextWeekday(wd);
-        left = Math.ceil((next.setHours(23,59,59,0) - Date.now()) / 86400000);
-      } else {
-        left = daysLeftDate(deadline);
-      }
+      if (wd != null) left = Math.ceil((nextWeekday(wd).setHours(23,59,59,0) - Date.now()) / 86400000);
+      else left = daysLeftDate(deadline);
       return Object.assign({}, i, { subject, teacher, kind, schedule, deadline, wd, left });
     }
     function render() {
@@ -232,10 +317,7 @@
       if (filter === 'soon') tasks = all.filter((t) => t.left != null && t.left >= 0 && t.left <= 1);
       else if (filter === 'over') tasks = all.filter((t) => t.wd == null && t.left != null && t.left < 0);
       else if (filter === 'лекция' || filter === 'семинар' || filter === 'лаба') tasks = all.filter((t) => t.kind === filter);
-      if (!tasks.length) {
-        list.innerHTML = '<p class="empty">Пока пусто.</p>';
-        return;
-      }
+      if (!tasks.length) { list.innerHTML = '<p class="empty">Пока пусто.</p>'; return; }
       list.innerHTML = tasks.map((t) => `
         <a class="card" href="${t.html_url}">
           <h2>${escapeHtml(t.kind ? t.kind + ': ' + t.subject : t.title)}</h2>
@@ -246,11 +328,9 @@
           </div>
         </a>`).join('');
     }
-    function load(url) {
-      return fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-    }
-    load('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
-      .catch(() => load('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50'))
+    fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .catch(() => fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50').then((r) => r.json()))
       .then((items) => {
         all = (items || []).filter((i) => !i.pull_request).map(normalize)
           .sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
