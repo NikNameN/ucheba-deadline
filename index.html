@@ -3,42 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f1115" />
   <title>Учёба — дедлайны</title>
   <style>
-    :root { color-scheme: dark; --bg:#0f1115; --card:#1a1d24; --line:#2a2f3a; --txt:#e8eaed; --muted:#9aa3b2; --acc:#6ea8fe; --warn:#ffb020; --bad:#ff6b6b; --ok:#3dd68c; }
+    :root {
+      color-scheme: dark;
+      --bg:#0b0d12; --card:#161a22; --line:#2a3140; --txt:#eef1f6;
+      --muted:#939bb0; --acc:#7eb0ff; --warn:#ffb020; --bad:#ff6b6b; --ok:#3dd68c;
+    }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--txt); }
-    header { padding: 18px 16px 8px; position:sticky; top:0; background:linear-gradient(var(--bg), rgba(15,17,21,.92)); }
-    h1 { font-size: 1.25rem; margin:0 0 6px; }
-    p.sub { margin:0 0 12px; color:var(--muted); font-size:.9rem; }
-    .bar { display:flex; gap:8px; }
-    a.btn, button.btn { flex:1; text-align:center; text-decoration:none; color:#081018; background:var(--acc); border:0; border-radius:12px; padding:12px; font-weight:600; font-size:.95rem; }
-    a.btn.ghost { background:transparent; color:var(--acc); border:1px solid #3a4660; }
-    main { padding: 8px 16px 32px; display:flex; flex-direction:column; gap:10px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
-    .card h2 { margin:0 0 6px; font-size:1.05rem; }
-    .meta { color:var(--muted); font-size:.85rem; display:flex; flex-wrap:wrap; gap:8px; }
-    .tag { padding:2px 8px; border-radius:999px; background:#232833; }
-    .soon { color:var(--warn); }
-    .over { color:var(--bad); }
-    .ok { color:var(--ok); }
-    .empty, .err { color:var(--muted); padding:24px 8px; text-align:center; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+    }
+    header { padding: 18px 16px 12px; }
+    h1 { font-size: 1.35rem; margin: 0 0 4px; }
+    .sub { margin: 0; color: var(--muted); font-size: .9rem; }
+    .panel {
+      margin: 0 16px 12px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    label { display: block; font-size: .8rem; color: var(--muted); margin: 10px 0 4px; }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px; border-radius: 10px;
+      border: 1px solid var(--line); background: #0f131a; color: var(--txt); font-size: 1rem;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button, .btn {
+      display: block; width: 100%; margin-top: 14px; padding: 13px;
+      border: 0; border-radius: 12px; background: var(--acc); color: #081018;
+      font-weight: 700; font-size: 1rem; text-align: center; text-decoration: none;
+    }
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: .78rem; }
+    .filters { display: flex; gap: 8px; padding: 0 16px 8px; overflow-x: auto; }
+    .filters button {
+      width: auto; margin: 0; padding: 8px 12px; background: #1a2030; color: var(--txt); font-weight: 600; font-size: .85rem;
+    }
+    .filters button.on { background: var(--acc); color: #081018; }
+    main { padding: 4px 16px 40px; display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      display: block; background: var(--card); border: 1px solid var(--line);
+      border-radius: 14px; padding: 14px; color: inherit; text-decoration: none;
+    }
+    .card h2 { margin: 0 0 6px; font-size: 1.05rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: .82rem; }
+    .tag { padding: 2px 8px; border-radius: 999px; background: #232833; }
+    .soon { color: var(--warn); }
+    .over { color: var(--bad); }
+    .ok { color: var(--ok); }
+    .empty, .err { color: var(--muted); text-align: center; padding: 24px 8px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Учёбные задания</h1>
-    <p class="sub">Общий список. Добавление и правка — через GitHub с телефона.</p>
-    <div class="bar">
-      <a class="btn" href="https://github.com/NikNameN/ucheba-deadline/issues/new?template=zadanie.yml">+ Добавить</a>
-      <a class="btn ghost" href="https://github.com/NikNameN/ucheba-deadline/issues">Все issues</a>
-    </div>
+    <h1>Дедлайны по учёбе</h1>
+    <p class="sub">Общий сайт. Добавляй здесь с телефона.</p>
   </header>
+
+  <form class="panel" id="form">
+    <label>Задание</label>
+    <input id="title" required placeholder="Лаба по приводам" />
+    <div class="row">
+      <div>
+        <label>Дедлайн</label>
+        <input id="deadline" type="date" required />
+      </div>
+      <div>
+        <label>Повтор</label>
+        <select id="repeat">
+          <option value="однократно">однократно</option>
+          <option value="каждый день">каждый день</option>
+          <option value="каждую неделю">каждую неделю</option>
+          <option value="каждый месяц">каждый месяц</option>
+        </select>
+      </div>
+    </div>
+    <label>Предмет</label>
+    <input id="subject" placeholder="Приводы / ROS / встроенные" />
+    <label>Заметка</label>
+    <textarea id="notes" placeholder="Необязательно"></textarea>
+    <button type="submit">Добавить задание</button>
+    <p class="hint">Откроется GitHub, нажми «Submit new issue». После этого задание появится на сайте.</p>
+  </form>
+
+  <div class="filters">
+    <button class="on" data-f="all">Все</button>
+    <button data-f="soon">Скоро</button>
+    <button data-f="over">Просрочено</button>
+  </div>
   <main id="list"><p class="empty">Загрузка…</p></main>
+
   <script>
     const OWNER = 'NikNameN';
     const REPO = 'ucheba-deadline';
     const list = document.getElementById('list');
+    let all = [];
+    let filter = 'all';
+
+    document.getElementById('form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const deadline = document.getElementById('deadline').value;
+      const repeat = document.getElementById('repeat').value;
+      const subject = document.getElementById('subject').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      const body = [
+        '### Дедлайн',
+        deadline,
+        '',
+        '### Повтор',
+        repeat,
+        '',
+        '### Предмет',
+        subject || '—',
+        '',
+        '### Заметки',
+        notes || '—'
+      ].join('\n');
+      const url = 'https://github.com/' + OWNER + '/' + REPO + '/issues/new?labels=zadanie'
+        + '&title=' + encodeURIComponent(title)
+        + '&body=' + encodeURIComponent(body);
+      location.href = url;
+    });
+
+    document.querySelectorAll('.filters button').forEach((b) => {
+      b.onclick = () => {
+        document.querySelectorAll('.filters button').forEach((x) => x.classList.remove('on'));
+        b.classList.add('on');
+        filter = b.dataset.f;
+        render();
+      };
+    });
+
     function parseField(body, name) {
       if (!body) return '';
       const re = new RegExp('(?:###\\s*)?' + name + '\\s*\\n+([^\\n#]+)', 'i');
@@ -46,8 +149,8 @@
       return m ? m[1].trim() : '';
     }
     function daysLeft(iso) {
-      if (!iso) return null;
-      const d = new Date(iso + 'T23:59:59');
+      if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return null;
+      const d = new Date(iso.slice(0, 10) + 'T23:59:59');
       if (isNaN(d)) return null;
       return Math.ceil((d - new Date()) / 86400000);
     }
@@ -64,36 +167,62 @@
       if (n === 1) return 'завтра';
       return 'ещё ' + n + ' дн.';
     }
-    fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50')
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(items => {
-        const tasks = items.filter(i => !i.pull_request).map(i => {
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, (c) => ({
+        '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;'
+      }[c]));
+    }
+    function render() {
+      let tasks = all;
+      if (filter === 'soon') tasks = all.filter((t) => t.left != null && t.left >= 0 && t.left <= 2);
+      if (filter === 'over') tasks = all.filter((t) => t.left != null && t.left < 0);
+      if (!tasks.length) {
+        list.innerHTML = '<p class="empty">Пока пусто.</p>';
+        return;
+      }
+      list.innerHTML = tasks.map((t) => `
+        <a class="card" href="${t.html_url}">
+          <h2>${escapeHtml(t.title)}</h2>
+          <div class="meta">
+            <span class="tag ${cls(t.left)}">${escapeHtml(t.deadline || '—')} · ${label(t.left)}</span>
+            <span class="tag">${escapeHtml(t.repeat)}</span>
+            ${t.subject && t.subject !== '—' ? '<span class="tag">' + escapeHtml(t.subject) + '</span>' : ''}
+            <span class="tag">@${escapeHtml(t.user.login)}</span>
+          </div>
+        </a>`).join('');
+    }
+
+    fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&labels=zadanie&per_page=50')
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((items) => {
+        all = items.filter((i) => !i.pull_request).map((i) => {
           const deadline = parseField(i.body, 'Дедлайн');
           const repeat = parseField(i.body, 'Повтор') || 'однократно';
           const subject = parseField(i.body, 'Предмет');
-          return { ...i, deadline, repeat, subject, left: daysLeft(deadline) };
-        }).sort((a,b) => {
+          return Object.assign({}, i, { deadline, repeat, subject, left: daysLeft(deadline) });
+        }).sort((a, b) => {
           if (a.left == null) return 1;
           if (b.left == null) return -1;
           return a.left - b.left;
         });
-        if (!tasks.length) {
-          list.innerHTML = '<p class="empty">Пока пусто. Нажми «Добавить».</p>';
-          return;
-        }
-        list.innerHTML = tasks.map(t => `
-          <a class="card" href="${t.html_url}" style="display:block;color:inherit;text-decoration:none">
-            <h2>${t.title.replace(/</g,'')}</h2>
-            <div class="meta">
-              <span class="tag ${cls(t.left)}">${t.deadline || '—'} · ${label(t.left)}</span>
-              <span class="tag">${t.repeat}</span>
-              ${t.subject ? '<span class="tag">' + t.subject + '</span>' : ''}
-              <span class="tag">@${t.user.login}</span>
-            </div>
-          </a>`).join('');
+        render();
       })
       .catch(() => {
-        list.innerHTML = '<p class="err">Не удалось загрузить список. Открой issues на GitHub.</p>';
+        fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues?state=open&per_page=50')
+          .then((r) => r.json())
+          .then((items) => {
+            all = (items || []).filter((i) => !i.pull_request).map((i) => {
+              const deadline = parseField(i.body, 'Дедлайн');
+              return Object.assign({}, i, {
+                deadline,
+                repeat: parseField(i.body, 'Повтор') || 'однократно',
+                subject: parseField(i.body, 'Предмет'),
+                left: daysLeft(deadline)
+              });
+            }).sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
+            render();
+          })
+          .catch(() => { list.innerHTML = '<p class="err">Список не загрузился.</p>'; });
       });
   </script>
 </body>
