@@ -63,7 +63,7 @@
 <body>
   <header>
     <h1>АДМ-25-05</h1>
-    <p class="sub">Предмет из расписания — препод подставится сам.</p>
+    <p class="sub">Сначала предмет и тип — потом ФИО само.</p>
   </header>
 
   <form class="panel" id="form">
@@ -72,9 +72,6 @@
       <input id="subject" required autocomplete="off" placeholder="Начни вводить или выбери" />
       <div class="suggest" id="suggest"></div>
     </div>
-
-    <label>ФИО преподавателя</label>
-    <input id="teacher" required placeholder="подставится после выбора предмета" />
 
     <div class="row">
       <div>
@@ -100,13 +97,18 @@
       </div>
     </div>
 
+    <label>ФИО преподавателя</label>
+    <select id="teacher" required>
+      <option value="">сначала выбери предмет и тип</option>
+    </select>
+
     <div id="dateWrap">
       <label>Дата</label>
       <input id="deadline" type="date" />
     </div>
 
     <button class="submit" type="submit">Добавить</button>
-    <p class="hint">Добавление и удаление идут через GitHub. Удалить = Close issue.</p>
+    <p class="hint">Препод берётся из расписания по паре предмет + лекция/семинар/лаба.</p>
   </form>
 
   <div class="filters">
@@ -154,11 +156,26 @@
       return CATALOG.find((c) => norm(c.subject) === n)
         || CATALOG.find((c) => norm(c.subject).includes(n) && n.length > 4);
     }
+    function uniqueTeachers(c) {
+      return [...new Set(Object.values(c.byKind))];
+    }
     function fillTeacher() {
       const c = findCourse(subjectEl.value.trim());
-      if (!c) return;
+      if (!c) {
+        teacherEl.innerHTML = '<option value="">сначала выбери предмет и тип</option>';
+        return;
+      }
       subjectEl.value = c.subject;
-      teacherEl.value = c.byKind[kindEl.value] || Object.values(c.byKind)[0];
+      const kind = kindEl.value;
+      const chosen = c.byKind[kind] || uniqueTeachers(c)[0];
+      const names = uniqueTeachers(c);
+      teacherEl.innerHTML = names.map((n) => {
+        const mark = n === chosen ? ' selected' : '';
+        const note = n === c.byKind['лекция'] && n === c.byKind['семинар'] ? '' :
+          (n === c.byKind['лекция'] ? ' — лекция' : ' — семинар/лаба');
+        return '<option value="' + n + '"' + mark + '>' + n + note + '</option>';
+      }).join('');
+      teacherEl.value = chosen;
     }
     function renderSuggest(q) {
       const n = norm(q);
@@ -210,6 +227,7 @@
       const kind = kindEl.value;
       const when = whenEl.value;
       const deadline = deadlineEl.value;
+      if (!teacher) { teacherEl.focus(); return; }
       if (when === 'once' && !deadline) { deadlineEl.focus(); return; }
       const schedule = when === 'once' ? 'однократно' : DAY_LABEL[when];
       const body = [
@@ -313,12 +331,12 @@
           </div>
           <div class="actions">
             <a href="${t.html_url}">Открыть</a>
-            <button type="button" class="del" data-url="${t.html_url}" data-num="${t.number}">Удалить</button>
+            <button type="button" class="del" data-url="${t.html_url}">Удалить</button>
           </div>
         </article>`).join('');
       list.querySelectorAll('button.del').forEach((btn) => {
         btn.onclick = () => {
-          if (!confirm('Удалить этот дедлайн?\nНа GitHub нажми «Close issue» — после этого запись пропадёт со сайта.')) return;
+          if (!confirm('Удалить этот дедлайн?\nНа GitHub нажми «Close issue».')) return;
           location.href = btn.dataset.url;
         };
       });
